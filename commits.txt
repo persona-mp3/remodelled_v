@@ -1,0 +1,67 @@
+Parent : vu_32892412478
+HashId : vu_32892412478
+Author : vujade
+CommitMsg : stone in focus
+CommitedAt : Apr 25, 2025, 2:30 PM
+Parent : vu_32892412478
+HashId : fz_832412200421
+Author : vujade
+CommitMsg : firelord zuko
+CommitedAt : Apr 25, 2025, 2:30 PM
+Parent : fz_832412200421
+HashId : og_642803925
+Author : vujade
+CommitMsg : feat: ocean gate
+CommitedAt : Apr 25, 2025, 2:30 PM
+Parent : wc_485893453
+HashId : wc_485893453
+Author : vujade
+CommitMsg : feat: writing commits
+CommitedAt : Apr 25, 2025, 2:34 PM
+Parent : fh_434775346894
+HashId : fh_434775346894
+Author : < vujade >
+CommitMsg : todo: folder handling
+CommitedAt : Apr 25, 2025, 2:39 PM
+Parent : fh_434775346894
+HashId : fh_434775346894
+Author : vujade
+Email : < vujade@tokyo.com >
+CommitMsg : todo: folder handling
+CommitedAt : Apr 25, 2025, 2:43 PM
+Parent : fh_434775346894
+HashId : fh_434775346894
+Author : vujade
+Email : < vujade@tokyo.com >
+CommitMsg : todo: folder handling
+CommitedAt : Apr 25, 2025, 2:48 PM
+Parent : jd_3586376324
+HashId : jd_3586376324
+Author : vujade
+Email : < vujade@tokyo.com >
+CommitMsg : todo: commit history from file 
+CommitedAt : Apr 25, 2025, 2:51 PM
+Parent : f6a6e9b2-58fb-4e4e-bd7b-ebf5d52f1eed
+HashId : f6a6e9b2-58fb-4e4e-bd7b-ebf5d52f1eed
+Author : vujade
+Email : < vujade@tokyo.com >
+CommitMsg : feat: updating hash id with
+CommitedAt : Apr 25, 2025, 2:56 PM
+Parent : 04bf8563-00f3-417f-9e74-46442c3de531
+HashId : 04bf8563-00f3-417f-9e74-46442c3de531
+Author : vujade
+Email : < vujade@tokyo.com >
+CommitMsg : test: testing DAG 1
+CommitedAt : Apr 25, 2025, 2:58 PM
+Parent : 04bf8563-00f3-417f-9e74-46442c3de531
+HashId : 31748d43-05e8-48a1-84a3-57c605633dc5
+Author : vujade
+Email : < vujade@tokyo.com >
+CommitMsg : test: testing DAG, hashId of DAG1
+CommitedAt : Apr 25, 2025, 2:58 PM
+Parent : 31748d43-05e8-48a1-84a3-57c605633dc5
+HashId : 726157b0-2698-44c8-8ab5-d8faede79275
+Author : vujade
+Email : < vujade@tokyo.com >
+CommitMsg : test: testing DAG, hashId of DAG2
+CommitedAt : Apr 25, 2025, 2:58 PM

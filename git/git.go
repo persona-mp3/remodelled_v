@@ -5,17 +5,21 @@ import (
 	"errors"
 	"time"
 	"os"
-	"encoding/json"
+	"reflect"
+	// "encoding/json"
+
 	"github.com/aquasecurity/table"
+	"github.com/google/uuid"
 )
 
 type Commit struct {
-	Parent *HashId  				`json:"parent"`
-	Id HashId 							`json:"id"`
-	Author string 					`json:"author"` 
+	Parent *HashId `json:"parent"`
+	Id HashId      `json:"id"`
+	Author string  `json:"author"` 
+	Email string   `json:"email"`
 	// Snapshot *Tree 
-	CommitMsg string				`json:"commitMsg"`
-	CommitedAt time.Time		`json:"commitedAt"`
+	CommitMsg string     `json:"commitMsg"`
+	CommitedAt time.Time `json:"commitedAt"`
 }
 
 type Branch struct {
@@ -41,7 +45,7 @@ var headerPtr Header
 
 
 
-func Init(author string) (*Commit, error) {
+func Init(author, email string) (*Commit, error) {
 	if len(author) < 3 {
 		fmt.Println("[error] -> Author name too short")
 		return nil, errors.New("Author Name too short")
@@ -49,35 +53,35 @@ func Init(author string) (*Commit, error) {
 
 	gitRepo := Commit {
 		Author: author,
+		Email : email,
 	}
-
-	f, _ := os.Create("commits.json")
-	fmt.Print(f)
+	fmt.Printf("Repository initalised as %s with %s", author, email )
 
 	return &gitRepo, nil
 }
 
-func (commit *Commit) NCommit(msg, id string)  {
-	if len(msg) < 2 || len(id) < 8 {
+func (commit *Commit) NCommit(msg string)  {
+	if len(msg) < 2  {
 		panic("[error] -> commit msg or id too short\n")
 	}
 
 	hashId := HashId {
-		Id: id,
+		Id: uuid.New().String(),
 	}
 
 	commitedAt := time.Now()
+
 	commit.CommitMsg = msg
 	commit.CommitedAt = commitedAt
 	commit.Id = hashId
 	commit.Parent = &hashId
-	fmt.Println("new commit added")
+	fmt.Println("\nnew commit added")
 
 	if len(branches) > 0 {
 		// skip making a new master branch and pointer logic
 		commit.Parent = &commits[len(commits)-1].Id
 		commits = append(commits, *commit)
-		writeCommit(commit)
+		record_commit(commit)
 		return 
 	}
 
@@ -91,22 +95,59 @@ func (commit *Commit) NCommit(msg, id string)  {
 
 	branches = append(branches, master)
 	commits = append(commits, *commit)
-	// write commit to file
+	record_commit(commit)
 
 	return 
 }
 
-func writeCommit(commit *Commit)  {
-	// file, err := os.Create("commits.json")
-	// if err != nil {
-	// 	panic(err)
-	// }
 
-	jsonData, err := json.Marshal(commit)
-	if err != nil {
-		panic(err)
+func record_commit(commit *Commit) {
+	file, err := os.OpenFile("commits.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0660)
+	checker(err)
+	defer file.Close()
+
+
+	type Format struct {
+		Parent string
+		HashId string
+		Author string
+		Email string
+		CommitMsg string
+		CommitedAt string
 	}
-	fmt.Println(string(jsonData))
+
+	var formatted Format
+	formatted.HashId = commit.Id.Id
+	formatted.Parent = commit.Parent.Id
+	formatted.Author = commit.Author
+	formatted.Email = fmt.Sprintf("< %s >",commit.Email)
+	formatted.CommitMsg = commit.CommitMsg
+	formatted.CommitedAt = commit.CommitedAt.Format("Jan 2, 2006, 3:04 PM")
+	
+	types := reflect.TypeOf(formatted)
+	values := reflect.ValueOf(formatted)
+	
+	
+	n_total := 0
+	for i :=0; i < types.NumField(); i++ {
+		field := types.Field(i)
+		value := values.Field(i).Interface()
+		
+		line := fmt.Sprintf("%s : %v\n", field.Name, value)
+		n, err := fmt.Fprintf(file, line)
+
+		checker(err)
+		n_total += n
+
+	}
+	fmt.Printf("[recorded] -> %d bytes", n_total)
+}
+
+func checker(err error) {
+	if err != nil {
+		fmt.Println("[error] ->", err)
+		return
+	}
 }
 
 func (commit *Commit) CheckoutC(name string) {
@@ -137,6 +178,7 @@ func (commit *Commit) SwitchTo(name string) {
 	panic("[error] -> branch not found\n") 
 }
 
+// TODO: update to get branches from file
 func HeaderPtr(name string) {
 	for _, branch := range branches {
 		if branch.Name == name {
@@ -151,6 +193,7 @@ func HeaderPtr(name string) {
 	return
 }
 
+// TODO: update to read from file instead
 func CommitHistory() {
 	table := table.New(os.Stdout)
 	table.SetHeaders("#id", "parent", "commitMsg","commitedAt")
