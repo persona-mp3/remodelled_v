@@ -2,33 +2,60 @@ package main
 
 import (
 	"fmt"
-
+	"flag"
 	"remodelled/git"
 )
 
-func main() {
-	vujade, _ := git.Init("vujade", "vujade@tokyo.com")
+type CliCmds struct {
+	init string
+	commit string
+}
 
-	// vujade.NCommit("stone in focus", "vu_32892412478")
-	// vujade.NCommit("firelord zuko", "fz_832412200421")
-	// vujade.NCommit("feat: ocean gate", "og_642803925")
 
-	// vujade.NCommit("feat: writing commits", "wc_485893453")
-	// vujade.NCommit("todo: folder handling", "fh_434775346894")
-	// vujade.NCommit("todo: commit history from file ", "jd_3586376324")
-	// vujade.NCommit("feat: updating hash id with")
 
-	// vujade.NCommit("test: testing DAG 1")
-	// vujade.NCommit("test: testing DAG, hashId of DAG1")
-	// vujade.NCommit("test: testing DAG, hashId of DAG2")
+func read_cli() CliCmds{
+	var cliArgs CliCmds
 	
-	// vujade.CheckoutC("aphex_miles")	
-	// vujade.CheckoutC("soccah")	
-	//
-	// vujade.SwitchTo("aphex_miles")
+	flag.StringVar(&cliArgs.init, "init", "", " init -> initialise new repo object < author :string >")
+	flag.StringVar(&cliArgs.commit, "commit", "", " commit -> create a new commit < commitMsg :string >")
 
-	fmt.Println("\n", vujade)
-	git.CommitHistory()
+	flag.Parse()
+	return cliArgs
+}
 
+func handle_err(err error) {
+	if err != nil {
+		return
+	}
+}
+
+func exe_cli(cliArgs CliCmds) {
+	var repo 	*git.Commit
+	// var repo2 git.Commit
+	// var err error
+
+	switch {
+	case cliArgs.init != "" :
+		tempRepo, err := git.Init(cliArgs.init)
+		handle_err(err)
+		repo = tempRepo
+		fmt.Println(repo)
+	
+
+	case cliArgs.commit != "" :
+		// repo.NCommit(cliArgs.commit)
+		git.CommitMsg(cliArgs.commit)
+
+	default:
+		fmt.Println("[error] -> invalid arguments passed in")
+	}
+}
+
+func main() {
+	// repo, _ := git.Init("pearledIvory", "pearledivory@studios.com")
+	// repo.NCommit("feat: integrating cli features")
+
+	cliArgs := read_cli()
+	exe_cli(cliArgs)
 
 }

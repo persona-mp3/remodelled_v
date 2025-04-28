@@ -45,17 +45,18 @@ var headerPtr Header
 
 
 
-func Init(author, email string) (*Commit, error) {
-	if len(author) < 3 {
+func Init(email string) (*Commit, error) {
+	if len(email) < 3 {
 		fmt.Println("[error] -> Author name too short")
 		return nil, errors.New("Author Name too short")
 	}
 
 	gitRepo := Commit {
-		Author: author,
+		Author: "persona-mp3",
 		Email : email,
 	}
-	fmt.Printf("Repository initalised as %s with %s", author, email )
+	// fmt.Printf("Repository initalised as %s with %s", author, email )
+	fmt.Printf("\nRepository initalised as %s with < %s >\n", gitRepo.Author, gitRepo.Email )
 
 	return &gitRepo, nil
 }
@@ -81,7 +82,7 @@ func (commit *Commit) NCommit(msg string)  {
 		// skip making a new master branch and pointer logic
 		commit.Parent = &commits[len(commits)-1].Id
 		commits = append(commits, *commit)
-		record_commit(commit)
+		// record_commit(commit)
 		return 
 	}
 
@@ -95,13 +96,60 @@ func (commit *Commit) NCommit(msg string)  {
 
 	branches = append(branches, master)
 	commits = append(commits, *commit)
+	// record_commit(commit)
+
+	return 
+}
+
+// for now, the commit is basically the same as the repo created
+func CommitMsg(msg string) {
+	if len(msg) < 2  {
+		fmt.Println("[error] -> Commit message must be more than 2 characters")
+		return
+	}
+
+	var commit Commit
+
+	hashId := HashId {
+		Id: uuid.New().String(),
+	}
+
+	commitedAt := time.Now()
+
+	commit.Author = "persona-mp3"
+	commit.Email = "peraledivory@studios.com"
+	commit.CommitMsg = msg
+	commit.CommitedAt = commitedAt
+	commit.Id = hashId
+	commit.Parent = &hashId
+	fmt.Println("\nnew commit added")
+
+	// if len(branches) > 0 {
+	// 	// skip making a new master branch and pointer logic
+	// 	commit.Parent = &commits[len(commits)-1].Id
+	// 	commits = append(commits, *commit)
+	// 	record_commit(commit)
+	// 	return 
+	// }
+
+	// master := Branch {
+	// 	Name: "master",
+	// 	LatestCommit: &hashId,
+	// }
+	//
+
+	// headerPtr.BranchName = master.Name
+	// headerPtr.ActiveBranch = &master
+	
+
+	// branches = append(branches, master)
+	// commits = append(commits, *commit)
 	record_commit(commit)
 
 	return 
 }
 
-
-func record_commit(commit *Commit) {
+func record_commit(commit Commit) {
 	file, err := os.OpenFile("commits.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0660)
 	checker(err)
 	defer file.Close()
