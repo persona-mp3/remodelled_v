@@ -1,0 +1,7 @@
+Now, I've been able to get the basic file processess:
+i. Upon ```go run main.go --init ""```, all folders are initiated
+ii. On ```go run main.go --commit "commit-msg"```, branch is updated to the latest commit and is added to the logs
+
+TODO:
+iii. Get previous parent upon new commit 
+

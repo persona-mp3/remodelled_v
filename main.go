@@ -72,9 +72,6 @@ func exe_cli(cliArgs CliCmds) {
 }
 
 func main() {
-	// repo, _ := git.Init("pearledIvory", "pearledivory@studios.com")
-	// repo.NCommit("feat: integrating cli features")
-
 	cliArgs := read_cli()
 	exe_cli(cliArgs)
 }

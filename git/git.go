@@ -7,6 +7,7 @@ import (
 	"os"
 	"reflect"
 	"bufio"
+	"strings"
 	// "encoding/json"
 
 	"github.com/aquasecurity/table"
@@ -37,6 +38,15 @@ type HashId struct {
 	Id string
 }
 
+
+type Format struct {
+	Parent string
+	HashId string
+	Author string
+	Email string
+	CommitMsg string
+	CommitedAt string
+}
 type Commits []Commit
 type Branches []Branch
 
@@ -83,6 +93,7 @@ func init_folders() {
 	fmt.Println("\n[main folders initialised]")
 
 	defer init_refs_folders()
+	defer mk_log_folders()
 }
 
 func mk_head() {
@@ -103,7 +114,7 @@ func mk_head() {
 	// -- logs/refs/heads/new_branch --> "broke prod at 5am" 7d_q388374237 vibecodes < vibecoder@yahoo.com >
 	// HEAD still remains the same
 
-	file, err := os.OpenFile("git-folder/HEADER.txt", os.O_CREATE | os.O_RDWR, 0660)
+	file, err := os.OpenFile("git_folder/HEAD.txt", os.O_CREATE | os.O_RDWR, 0660)
 	handle_err(err)	
 	defer file.Close()
 
@@ -123,7 +134,27 @@ func init_refs_folders() {
 		handle_err(err)	
 	}
 
-	fmt.Println("\n[refs sub folders initialised\n]")
+	fmt.Println("\n[refs sub folders initialised]")
+}
+
+func mk_log_folders() {
+	// we just need to make the refs folder 
+	err := os.Mkdir("git_folder/logs/refs", 0770)
+	handle_err(err)
+
+	f, err2 := os.OpenFile("git_folder/logs/HEAD.txt", os.O_APPEND | os.O_CREATE | os.O_RDWR,0660)
+	handle_err(err2)
+	defer f.Close()
+
+	sub_folders := [3]string{"heads", "remotes", "tags"}
+
+	for _, sub_folder := range sub_folders {
+		path := "git_folder/logs/refs/" + sub_folder 
+		err := os.Mkdir(path, 0777)
+		handle_err(err)	
+	}
+
+	fmt.Println("\n[log sub folders initialised]")
 }
 
 // for now, the commit is basically the same as the repo created
@@ -149,26 +180,53 @@ func CommitMsg(msg string) {
 	commit.Parent = &hashId
 	fmt.Println("\nnew commit added")
 
-	record_commit(commit)
 
+	active_branch := update_branch(hashId)
+	update_branch_log(commit, active_branch)
 	return 
 }
 
-
-func record_commit(commit Commit) {
-	file, err := os.OpenFile("commits.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0660)
-	handle_err(err)	
+// this function just returns the path to the current branch so it can be used to update the logs
+// this will be further be referred to as "active_branch" anywhere outside this function
+func update_branch(hashId HashId) string{
+	// read header.txt
+	file, err := os.OpenFile("git_folder/HEAD.txt", os.O_RDONLY, 0660)
+	handle_err(err)
 	defer file.Close()
 
-
-	type Format struct {
-		Parent string
-		HashId string
-		Author string
-		Email string
-		CommitMsg string
-		CommitedAt string
+	var path string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		content := scanner.Text()
+		// strings.Cut(s, seperator) --> before, after, boolean
+		_, path, _ = strings.Cut(content, ":")
 	}
+
+	// crawl the path to the branch file now and write the commit id
+	branch_path := "git_folder/"	+ path
+	branch, err := os.OpenFile(branch_path, os.O_RDWR | os.O_TRUNC | os.O_CREATE, 0660)
+	handle_err(err)
+	defer branch.Close()
+
+	// write the latest commit to the branch file
+	n, err := fmt.Fprintf(branch, hashId.Id)
+	handle_err(err)
+
+	fmt.Printf("[total bytes written] -> %d", n)
+	fmt.Println("[success] -> branch updated")
+  return path 
+}
+
+
+func update_branch_log(commit Commit, active_branch string) {
+	branch_log := "git_folder/logs/"	+ active_branch
+	fmt.Println("[UPDATE LOG]")
+	fmt.Println("\n", branch_log)
+	// now write this commit to the file 
+
+	file, err := os.OpenFile(branch_log, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0660)
+	handle_err(err)	
+	defer file.Close()
 
 	var formatted Format
 	formatted.HashId = commit.Id.Id
@@ -190,18 +248,20 @@ func record_commit(commit Commit) {
 		line := fmt.Sprintf("%s : %v\n", field.Name, value)
 		n, err := fmt.Fprintf(file, line)
 
-		// checkerr(err)
 		handle_err(err)	
 		n_total += n
 
 	}
-	fmt.Printf("[recorded] -> %d bytes", n_total)
+	fmt.Printf("[update_log] -> %d bytes", n_total)
+	fmt.Println("[updated_log] -> success")
 }
+
 
 func handle_err(err error) {
 	if err != nil {
 		fmt.Println("[error] ->", err)
-		return
+		panic(err)
+		// return
 	}
 }
 
@@ -326,21 +386,6 @@ func Logs() {
 		// fmt.Println(commit)
 		i++
 	}
-}
-
-// TODO: update to get branches from file
-func HeaderPtr(name string) {
-	for _, branch := range branches {
-		if branch.Name == name {
-			headerPtr.ActiveBranch = &branch
-			headerPtr.BranchName = branch.Name
-			fmt.Println("[header] ->", name)
-			return 
-		}
-	}
-
-	fmt.Println("[error] -> error switching header to new branch")
-	return
 }
 
 // TODO: update to read from file instead

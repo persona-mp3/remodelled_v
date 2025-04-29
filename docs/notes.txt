@@ -105,3 +105,63 @@ relative to this structure:
                                           origin, other-remotes
                                           {logs of push and pulls??}
 
+
+
+COMMITS 
+Now that we have branches and headers configured, we also need to change the commits feature along side with it.
+With the current structure, it just does that at run time and reads to text files. But you see, since i want to start commiting, 
+these are the steps i'd need to go through -->
+1. CHECK HEADER FILE
+ Upon new commit, first check the what the header is pointing to
+
+2. LOCATE THE BRANCH 
+After getting the current branching, it will always look like this : 
+          ref : ref/headers/master
+Now we, need to locate this branch in the log folder as 
+          logs/headers..>refs/master
+and append the new commit to the master.txt file there
+
+3. TAKE SNAPSHOT
+Well, this should technically be step2, but this is according to how Im developing, starting with the structure as the trees and blobs will be in hindsight
+the last thing to do, shoudln't be that complex (hopefully) 04:26am Tuesday, 2025 April
+
+4. STORE IN OBJECT FOLDER 
+The snapshot is then stored in the object folder with the previous naming convention as iterated earilier inside the file, but for storage persistence, we'll go through it again, quickly.
+
+      go run main.go --commit "breakdown"
+
+      >> commit := Commmit {
+        parent: previousCommit || 00000000000,
+        sha1-id: db_834343423835,
+        msg: "breakdown",
+      }
+
+
+      [read HEAD.txt]
+      >> ref: refs/heads/master
+
+      [updating|overwriting branch to point to latest commit]
+      >> db_834343423835
+
+      [updating branch history]
+      > logs/refs/head/master.txt
+      >> 0000000000 db_834343423835 breakdown persona-mp3  < vujade@tokyo.mjpeg.com > 04:33 AM UTC 000 TUESDAY....
+
+
+      [store content in object folder]
+      > object
+      >+ db 
+      // remember, the folder name is the first two characters of the sha1-id, and the name of the particular file is the rest
+      >++_83434342835
+      >> [COMPRESSED CONTENT USING ZLIB]
+
+
+
+
+
+
+
+SUMMARY
+- check header.txt
+- go to logs and update the branch file with sha1-id 
+- update branch.txt to commit sha1-1
