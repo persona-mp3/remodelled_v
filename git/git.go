@@ -181,30 +181,20 @@ func CommitMsg(msg string) {
 	fmt.Println("\nnew commit added")
 
 
-	active_branch := update_branch(hashId)
-	update_branch_log(commit, active_branch)
+	// active_branch := update_branch(hashId)
+	path, active_branch, updated_commit := get_latest_commit(commit)
+	update_branch(hashId, path)
+	update_branch_log(updated_commit, active_branch)
 	return 
 }
 
 // this function just returns the path to the current branch so it can be used to update the logs
 // this will be further be referred to as "active_branch" anywhere outside this function
-func update_branch(hashId HashId) string{
-	// read header.txt
-	file, err := os.OpenFile("git_folder/HEAD.txt", os.O_RDONLY, 0660)
-	handle_err(err)
-	defer file.Close()
-
-	var path string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		content := scanner.Text()
-		// strings.Cut(s, seperator) --> before, after, boolean
-		_, path, _ = strings.Cut(content, ":")
-	}
+func update_branch(hashId HashId, path string) string{
 
 	// crawl the path to the branch file now and write the commit id
-	branch_path := "git_folder/"	+ path
-	branch, err := os.OpenFile(branch_path, os.O_RDWR | os.O_TRUNC | os.O_CREATE, 0660)
+	// branch_path := "git_folder/"	+ path
+	branch, err := os.OpenFile(path, os.O_RDWR | os.O_TRUNC | os.O_CREATE, 0660)
 	handle_err(err)
 	defer branch.Close()
 
@@ -214,17 +204,15 @@ func update_branch(hashId HashId) string{
 
 	fmt.Printf("[total bytes written] -> %d", n)
 	fmt.Println("[success] -> branch updated")
+
   return path 
 }
 
 
 func update_branch_log(commit Commit, active_branch string) {
-	branch_log := "git_folder/logs/"	+ active_branch
-	fmt.Println("[UPDATE LOG]")
-	fmt.Println("\n", branch_log)
-	// now write this commit to the file 
+	path := "git_folder/logs/refs/heads/" + active_branch 
 
-	file, err := os.OpenFile(branch_log, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0660)
+	file, err := os.OpenFile(path, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0660)
 	handle_err(err)	
 	defer file.Close()
 
@@ -248,14 +236,81 @@ func update_branch_log(commit Commit, active_branch string) {
 		line := fmt.Sprintf("%s : %v\n", field.Name, value)
 		n, err := fmt.Fprintf(file, line)
 
+
 		handle_err(err)	
 		n_total += n
 
 	}
-	fmt.Printf("[update_log] -> %d bytes", n_total)
+
+	// fmt.Printf("[update_log] -> %d bytes", n_total)
 	fmt.Println("[updated_log] -> success")
 }
 
+// we might need to fully refactor update_branch and include the logic
+/*
+	i.  Get latest commit from the active branch(upon initiaition, might just set latest commit to 00000)
+			if:
+	ii. 	latest_commit == 0000000 then; parent commit.Parent === 000000000 
+			else:
+	iii.	commit.Parent = latest_commit
+			fi 
+
+	iv. Basic format logic	
+*/
+
+func get_latest_commit(commit Commit) (string, string, Commit){
+	/* active branch is given to us by the HEAD.file */
+	head, err:= os.OpenFile("git_folder/HEAD.txt", os.O_RDONLY, 0660)
+	handle_err(err)
+	defer head.Close()
+
+	/* read the head file and get path to the active branch*/
+	head_scanner := bufio.NewScanner(head)
+	var active_branch string
+
+	for head_scanner.Scan() {
+		ref := head_scanner.Text()
+		_, active_branch, _ = strings.Cut(ref, ":")
+	}
+	
+	/*path = git_folder/ + refs/heads/{name_of_branch}*/
+	path := "git_folder/" + active_branch
+
+
+	/* opening the branch file and reading the latest commit id*/
+	branch, err := os.OpenFile(path,  os.O_RDONLY , 0660)	
+	handle_err(err)
+	defer branch.Close()
+
+	branch_scanner := bufio.NewScanner(branch)
+	var latest_commit string
+	var hashId HashId
+
+	for branch_scanner.Scan() {
+		latest_commit = branch_scanner.Text()
+		fmt.Println("this is the latest commit on branch")
+		fmt.Println(latest_commit)
+	}
+
+	/*logic for deciding parent*/
+
+	if latest_commit != "00000000000000000"{
+		hashId.Id = latest_commit 
+		commit.Parent = &hashId
+	} else {
+		hashId.Id = "0000000000000000"
+		commit.Parent = &hashId
+	}
+
+	_, active_branch, _ = strings.Cut(path, "heads/")
+	// fmt.Println("\nTHE ACTIVE BRANCH")
+	// fmt.Println(active_branch)
+	
+	return path, active_branch, commit
+
+	// update_branch_log(commit, active_branch)
+
+}
 
 func handle_err(err error) {
 	if err != nil {
