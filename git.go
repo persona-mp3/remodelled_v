@@ -61,14 +61,14 @@ func Init(email string) (*Commit, error) {
 	// refs_struct := git_folder/refs/heads, remotes, tags
 	// objects_struct := git/folder/objects/commit_id{*zlib compression}
 
-	// init_folders()
+	init_folders()
 
 	return &gitRepo, nil
 }
 
 func init_folders() {
 	err := os.Mkdir("git_folder", 0777)
-	checkerr(err)	
+	hanlde_err(err)	
 
 	sub_folders := [3]string{"refs", "objects", "logs"}
 
@@ -89,7 +89,8 @@ func init_refs_folders() {
 	for _, sub_folder := range sub_folders {
 		path += sub_folder
 		err := os.Mkdir(path, 0777)
-		checkerr(err)
+		// checkerr(err)
+		hanlde_err(err)	
 	}
 
 	fmt.Println("\n[refs sub folders initialised\n]")
@@ -186,7 +187,8 @@ func CommitMsg(msg string) {
 
 func record_commit(commit Commit) {
 	file, err := os.OpenFile("commits.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0660)
-	checkerr(err)
+	// checkerr(err)
+	hanlde_err(err)	
 	defer file.Close()
 
 
@@ -219,14 +221,15 @@ func record_commit(commit Commit) {
 		line := fmt.Sprintf("%s : %v\n", field.Name, value)
 		n, err := fmt.Fprintf(file, line)
 
-		checkerr(err)
+		// checkerr(err)
+		hanlde_err(err)	
 		n_total += n
 
 	}
 	fmt.Printf("[recorded] -> %d bytes", n_total)
 }
 
-func checkerr(err error) {
+func handle_err(err error) {
 	if err != nil {
 		fmt.Println("[error] ->", err)
 		return

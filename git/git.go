@@ -6,6 +6,7 @@ import (
 	"time"
 	"os"
 	"reflect"
+	"bufio"
 	// "encoding/json"
 
 	"github.com/aquasecurity/table"
@@ -45,6 +46,9 @@ var headerPtr Header
 
 
 
+// when we initalised a new git repository, we'd want to just set all the defaults
+// git folders, head files, log folders and all
+// although this might not be case for the real implementation of git, this will just be used instead
 func Init(email string) (*Commit, error) {
 	if len(email) < 3 {
 		fmt.Println("[error] -> Author name too short")
@@ -56,10 +60,6 @@ func Init(email string) (*Commit, error) {
 		Email : email,
 	}
 	fmt.Printf("\nRepository initalised as %s with < %s >\n", gitRepo.Author, gitRepo.Email )
-	// create git folders 
-	// path := git_folder/refs, objects, logs, hooks
-	// refs_struct := git_folder/refs/heads, remotes, tags
-	// objects_struct := git/folder/objects/commit_id{*zlib compression}
 
 	init_folders()
 
@@ -70,71 +70,60 @@ func init_folders() {
 	err := os.Mkdir("git_folder", 0777)
 	handle_err(err)	
 
+	mk_head()
+
 	sub_folders := [3]string{"refs", "objects", "logs"}
 
 	for _, sub_folder := range sub_folders {
-		path := "git_folder" + sub_folder
+		path := "git_folder/" + sub_folder
+		fmt.Println("made 1")
 		err := os.Mkdir(path, 0777)
 		handle_err(err)
 	}
 	fmt.Println("\n[main folders initialised]")
 
-	init_refs_folders()
+	defer init_refs_folders()
+}
+
+func mk_head() {
+	// the HEAD file in the root dir simply contains a the path to the current working branch 
+	// it will show something like this:
+	// ref: refs/heads/master
+	// so anytime i do a new checkout this is all that happens:
+	// a new branch is made in the refs/heads/ directory --> new_branch
+
+	// -- now new_branch contains the latest commit sha-1 id, 
+	// and is recorded in the logs dir as logs/heads/new_branch {commit details}
+
+	// and now, the header now points to the new branch path, were the updates are made 
+	// -- HEAD now shows this: ref: refs/heads/new_branch
+
+	// upon a new commit on this branch, the new_branch will now update to this
+	// -- refs/heads/new_branch --> 7d_q388374237
+	// -- logs/refs/heads/new_branch --> "broke prod at 5am" 7d_q388374237 vibecodes < vibecoder@yahoo.com >
+	// HEAD still remains the same
+
+	file, err := os.OpenFile("git-folder/HEADER.txt", os.O_CREATE | os.O_RDWR, 0660)
+	handle_err(err)	
+	defer file.Close()
+
+	// point to master branch
+	n, err := fmt.Fprintf(file, "ref:refs/heads/master")
+	handle_err(err)	
+
+	fmt.Printf("[HEAD CREATED] -> %d written", n)
 }
 
 func init_refs_folders() {
 	sub_folders := [3]string{"heads", "remotes", "tags"}
-	path := "git_folder/refs/"
 
 	for _, sub_folder := range sub_folders {
-		path += sub_folder
+		path := "git_folder/refs/" + sub_folder 
 		err := os.Mkdir(path, 0777)
-		// checkerr(err)
 		handle_err(err)	
 	}
 
 	fmt.Println("\n[refs sub folders initialised\n]")
-}
-
-
-func (commit *Commit) NCommit(msg string)  {
-	if len(msg) < 2  {
-		panic("[error] -> commit msg or id too short\n")
-	}
-
-	hashId := HashId {
-		Id: uuid.New().String(),
-	}
-
-	commitedAt := time.Now()
-
-	commit.CommitMsg = msg
-	commit.CommitedAt = commitedAt
-	commit.Id = hashId
-	commit.Parent = &hashId
-	fmt.Println("\nnew commit added")
-
-	if len(branches) > 0 {
-		// skip making a new master branch and pointer logic
-		commit.Parent = &commits[len(commits)-1].Id
-		commits = append(commits, *commit)
-		// record_commit(commit)
-		return 
-	}
-
-	master := Branch {
-		Name: "master",
-		LatestCommit: &hashId,
-	}
-
-	headerPtr.BranchName = master.Name
-	headerPtr.ActiveBranch = &master
-
-	branches = append(branches, master)
-	commits = append(commits, *commit)
-	// record_commit(commit)
-
-	return 
 }
 
 // for now, the commit is basically the same as the repo created
@@ -160,30 +149,11 @@ func CommitMsg(msg string) {
 	commit.Parent = &hashId
 	fmt.Println("\nnew commit added")
 
-	// if len(branches) > 0 {
-	// 	// skip making a new master branch and pointer logic
-	// 	commit.Parent = &commits[len(commits)-1].Id
-	// 	commits = append(commits, *commit)
-	// 	record_commit(commit)
-	// 	return 
-	// }
-
-	// master := Branch {
-	// 	Name: "master",
-	// 	LatestCommit: &hashId,
-	// }
-	//
-
-	// headerPtr.BranchName = master.Name
-	// headerPtr.ActiveBranch = &master
-	
-
-	// branches = append(branches, master)
-	// commits = append(commits, *commit)
 	record_commit(commit)
 
 	return 
 }
+
 
 func record_commit(commit Commit) {
 	file, err := os.OpenFile("commits.txt", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0660)
@@ -235,28 +205,72 @@ func handle_err(err error) {
 	}
 }
 
-func (commit *Commit) CheckoutC(name string) {
-	newBranch := Branch {
-		Name: name,
+
+func Checkout(name string) {
+	if len(name) < 2 {
+		fmt.Println("[error] -> branch name too short")
+		return
 	}
 
-	newBranch.LatestCommit = &commit.Id
-	branches = append(branches, newBranch)
-	fmt.Println("\n[branching] -> branching to ",name)
-	// create a new file called the branch name
-	create_branch(name)
-	// HeaderPtr(name)
+	path := "git_folder/refs/heads/" + name
+	temp_commit := "rb_453124124835"
+
+	f, err := os.OpenFile(path, os.O_CREATE | os.O_RDWR, 0660)
+	handle_err(err)
+	defer f.Close()
+	
+	n, err := fmt.Fprintf(f, temp_commit)
+	handle_err(err)
+
+	fmt.Println("\n[branch] -> new branch made")
+	fmt.Printf("[new bytes] -> %d", n)
 
 }
 
-func create_branch(name string) {
-	// create appropriate folders
-	// and then make a path to the headers folders
-	// where all the branches will me made, with the params name 
-	// f, err := mkDir()
-	// crawl to path:= git_folder/refs/heads 
-	// make a new branch 
-	// git_folder/refs/heads/*name {last_commit_id}
+// this function is always called whenever a ```git --checkout``` or 
+// ```git --switchto``` is ran.
+// it gets the name of the branch, and just overwrites what branch its pointing to 
+// also using the same structure ref: refs/heads/name
+
+func update_header(name string){
+	path := "git_folder/HEAD.txt"
+	// new_branch := path + name
+	ref := "ref: refs/heads/" + name
+	
+	f, err := os.OpenFile(path, os.O_CREATE | os.O_RDWR | os.O_TRUNC , 0660)
+	handle_err(err)
+	defer f.Close()
+
+	n, err := fmt.Fprintf(f, ref)
+	handle_err(err)
+	//
+	fmt.Println("\n[header] -> header pointer has been updated")
+	fmt.Printf("[new bytes] -> %d", n)
+
+}
+
+func (repo Commit) Checkout2(name string) {
+	if len(name) < 2 {
+		fmt.Println("[error] -> branch name too short")
+		return
+	}
+
+	path := "git_folder/refs/heads/" + name
+	temp_commit := uuid.New().String()
+	
+	
+	// repo.Email = "just_edited to check if i can use it as a method"
+	f, err := os.OpenFile(path, os.O_CREATE | os.O_RDWR, 0660)
+	handle_err(err)
+	defer f.Close()
+	
+	n, err := fmt.Fprintf(f, temp_commit)
+	handle_err(err)
+
+	fmt.Println("[branch] -> new branch made")
+	fmt.Printf("[new bytes] -> %d", n)
+	
+	update_header(name)
 }
 
 func (commit *Commit) SwitchTo(name string) {
@@ -267,11 +281,51 @@ func (commit *Commit) SwitchTo(name string) {
 			headerPtr.ActiveBranch = &branch
 			headerPtr.BranchName = branch.Name
 			fmt.Println("[header] ->", name)
+
 			return 
 		}
 	}
 
 	panic("[error] -> branch not found\n") 
+}
+
+func SwitchBranch(name string) {
+	path := "git_folder/refs/heads/" + name
+	// we'll need to walk the tree directory and rebuild the folder with contents
+	// this will be developed when zlib is being introduced
+	file, err := os.Open(path)
+	defer file.Close()
+
+	if err != nil {
+		fmt.Println("[error] -> switching to ", name)
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Printf("[success] -> branch was found %+v", *file)
+	update_header(name)
+}
+
+func Logs() {
+	// this will be later configured to read from the "logs" folder in the git_folder
+	// for testing, we are just using the text file
+	file, err := os.Open("commits.txt")
+	handle_err(err)
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	// i is the line counter	
+	i := 0
+	for scanner.Scan() {
+		commit := scanner.Text()
+		fmt.Println(commit)
+		if i % 5 == 0 {
+			fmt.Println("\n")
+		}
+		// fmt.Println(commit)
+		i++
+	}
 }
 
 // TODO: update to get branches from file

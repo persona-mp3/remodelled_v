@@ -1,0 +1,107 @@
+                                                                                       .git
+                                                                                       |
+                                                                                       |
+                                                                                       |
+                                  ------------------------------------------------------------------------------------------------------------
+                                  |                                                     |             |          | 
+                                  refs                                                  objects       logs       hooks 
+                                  |                                                     | 
+                                  |                                                     |
+                                  |                                                     |
+                                  |                                                     |
+                       ------------------------                               -----------------
+                       |          |           |                               |                |
+                       |          |           |                               commit_folder    |
+                       |          |           |                               *compressed_content.txt 
+                       heads      remotes     tags                                             |
+                       |          |           |                                                | 
+                       |          |           |                                                | 
+                       |          |           |                                                |
+            *this contains        |           immutable branches]                              |
+            all branches,         |                                                            |
+            pointing to the       |                                                            |
+            latest commits        |                                                            oa [894354395438.txt]
+                                  |
+            * master              |
+            * dev                 |
+                                  *contains remotes along with branches 
+                                  |
+                                  |
+                                  |
+                                  origin
+                                  |
+                                  * master
+                                  * dev
+
+
+
+
+
+
+
+
+
+note := objects
+The objects folder has multiple sub folders, each folder has a text file in it 
+Each folder is named the first two characters of the sha-1 hash, for example
+A commit that has the sha1-hash id of 2f3489732929342398234, will be stored in the object as this:
+a folder -> blob_file -> compressed_content and would look more like this:
+          
+            2f
+            |
+            |
+            |
+            f3489732929342398234
+            {*compressed content*}
+
+The compressed content is a z-lib compression algorithm where it can be descompressed using a python library, z-lib, which is also a default package in go.
+In cases where there will be two blob files, the second file usually means:
+- a sub folder has been made inside this directory
+- and the content inside this file is a pointer to that file 
+- heres the sha-1 hash id: a334326892348234423
+
+And in this same object folder, you will find the folder following the previous object provided.
+              
+            2f
+            |
+            |
+            |
+            f3489732929342398234
+            ux023428341231147569
+            *->pointer to sub folder ->a334326892348234423
+-----------------------------------------------------------------------------------
+            a3 (this is called a tree object)
+            |
+            |
+            |
+            34326892348234423
+            {*compressed content}
+
+logs := folder
+This folder is basically a replica of the the refs folder, but it contains all its commit history, its folder is 
+relative to this structure:
+            logs
+            |
+            |
+  -----------------------------------------------
+  |                                             |
+  |                                             |
+  |                                             |
+  refs                                          HEAD
+  -----------------------------------
+  |                                 |
+  |                                 |
+  |                                 |
+  master, fern, dev                 remotes 
+  {                                       |
+  contains all commit logs                |
+  on a branch which is usually            |
+  monitored by the HEAD pointer           |
+  }                                       |
+                                          |
+                                          |
+                                          |
+                                          |
+                                          origin, other-remotes
+                                          {logs of push and pulls??}
+
