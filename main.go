@@ -49,15 +49,15 @@ func exe_cli(cliArgs CliCmds) {
 		git.CommitMsg(cliArgs.commit)
 
 	case cliArgs.checkout != "" :
-		git.Checkout2(cliArgs.checkout)
+		git.Checkout(cliArgs.checkout)
 
-	// still optional, if i should make it a  method
-	// so i can just grab the latest clone the latst commit
-	case cliArgs.checkout2 != "" :
-		git.Checkout2(cliArgs.checkout2)
+	// // still optional, if i should make it a  method
+	// // so i can just grab the latest clone the latst commit
+	// case cliArgs.checkout2 != "" :
+	// 	git.Checkout2(cliArgs.checkout2)
 
 	case cliArgs.switchto != "" :
-		git.SwitchBranch(cliArgs.switchto)
+		git.SwitchTo(cliArgs.switchto)
 
 	case cliArgs.logs == "" :
 		git.Logs()

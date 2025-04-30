@@ -327,7 +327,7 @@ func update_header(name string){
 	fmt.Printf("[status] --> %d written", n)
 }
 
-func  Checkout2(name string) {
+func  Checkout(name string) {
 	if len(name) < 2 {
 		fmt.Println("[error] -> branch name too short")
 		return
@@ -367,42 +367,48 @@ func  Checkout2(name string) {
 	n, err := fmt.Fprintf(new_branch, latest_commit)
 	handle_err(err)
 
-	fmt.Printf("[branch] -> new branch made, %d written", n)
-	
+	fmt.Printf("[success] -> new branch made\n  written %d bytes", n)
 	update_header(name)
 }
 
-func (commit *Commit) SwitchTo(name string) {
-	fmt.Println("\nSWITCHING BRANCH TO --> ", name)
+/* 
+	use ReadDir to get all files in the current directory 
+	func ReadDir(name string) ([]DirEntry, err)
+	ii. Update header 	
+	iii. Print out the latest commit && the log books
+*/
 
-	for _, branch := range branches {
-		if branch.Name == name {
-			headerPtr.ActiveBranch = &branch
-			headerPtr.BranchName = branch.Name
-			fmt.Println("[header] ->", name)
+func SwitchTo(name string) {
+	is_found, branch := find_branch(name)
 
-			return 
-		}
-	}
-
-	panic("[error] -> branch not found\n") 
-}
-
-func SwitchBranch(name string) {
-	path := "git_folder/refs/heads/" + name
-	// we'll need to walk the tree directory and rebuild the folder with contents
-	// this will be developed when zlib is being introduced
-	file, err := os.Open(path)
-	defer file.Close()
-
-	if err != nil {
-		fmt.Println("[error] -> switching to ", name)
-		fmt.Println(err)
+	if !is_found {
 		return
 	}
 
-	fmt.Printf("[success] -> branch was found %+v", *file)
-	update_header(name)
+	fmt.Println("[success] -> branch found ", branch)
+	update_header(branch)
+	return
+}
+
+func find_branch(name string) (bool, string) {
+	git_path := "git_folder/refs/heads/"
+	fs, err := os.ReadDir(git_path)
+	handle_err(err)
+
+	is_found := false
+	var branch string
+	
+	for _, f := range fs {
+		if name == f.Name() {
+			branch = f.Name()	
+			is_found = true
+			return is_found, branch
+		}
+	}
+
+	fmt.Println("\n			[error] -> the branch was not found")
+	fmt.Println("\n			try making a new branch with --checkout")
+	return is_found, branch
 }
 
 func Logs() {
