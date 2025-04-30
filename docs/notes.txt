@@ -160,8 +160,30 @@ The snapshot is then stored in the object folder with the previous naming conven
 
 
 
-
 SUMMARY
 - check header.txt
 - go to logs and update the branch file with sha1-id 
 - update branch.txt to commit sha1-1
+
+
+
+
+NEW PROBLEM
+So we need to be able to identify the parent commit. there are two cases we need to take into consideration
+i. If this commit is the first commit in the file, and then we can assign it a parent of 000000000000
+
+ii. While there are other commits, we need to get this commit by:
+- readig the entire file and getting the last commitId
+- creating a temporary cache??
+- creating a json file that just contains the commitId of the last one
+-orrr, we could just get the latest commit from the branch file and use it as the parent for the new one, so the inner working will go like this:-->
+              go run main.go --commit "parent_feat"
+
+              /* check the branches commit before updating it, so reading file 
+              * sha1,err := os.Open("path/to/branch")
+              * scanner := bufio.NewScanner(sha1) 
+              * var latest_commit string
+              * for scanner.Scan(){latest_commit := scanner.Text()}
+              * if latest_commit === "" {that means its the first commit, so commit.Parent === 0000000 // read this into the HashId struct}
+              * else:
+              * commit.Parent = latest_commit // REM: after reading it to a struct

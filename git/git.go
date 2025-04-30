@@ -59,6 +59,14 @@ var headerPtr Header
 // when we initalised a new git repository, we'd want to just set all the defaults
 // git folders, head files, log folders and all
 // although this might not be case for the real implementation of git, this will just be used instead
+
+func handle_err(err error) {
+	if err != nil {
+		fmt.Println("[error] ->", err)
+		panic(err)
+	}
+}
+
 func Init(email string) (*Commit, error) {
 	if len(email) < 3 {
 		fmt.Println("[error] -> Author name too short")
@@ -96,29 +104,14 @@ func init_folders() {
 	defer mk_log_folders()
 }
 
+
 func mk_head() {
-	// the HEAD file in the root dir simply contains a the path to the current working branch 
-	// it will show something like this:
-	// ref: refs/heads/master
-	// so anytime i do a new checkout this is all that happens:
-	// a new branch is made in the refs/heads/ directory --> new_branch
-
-	// -- now new_branch contains the latest commit sha-1 id, 
-	// and is recorded in the logs dir as logs/heads/new_branch {commit details}
-
-	// and now, the header now points to the new branch path, were the updates are made 
-	// -- HEAD now shows this: ref: refs/heads/new_branch
-
-	// upon a new commit on this branch, the new_branch will now update to this
-	// -- refs/heads/new_branch --> 7d_q388374237
-	// -- logs/refs/heads/new_branch --> "broke prod at 5am" 7d_q388374237 vibecodes < vibecoder@yahoo.com >
-	// HEAD still remains the same
 
 	file, err := os.OpenFile("git_folder/HEAD.txt", os.O_CREATE | os.O_RDWR, 0660)
 	handle_err(err)	
 	defer file.Close()
 
-	// point to master branch
+	// point to master branch by default
 	n, err := fmt.Fprintf(file, "ref:refs/heads/master")
 	handle_err(err)	
 
@@ -181,19 +174,19 @@ func CommitMsg(msg string) {
 	fmt.Println("\nnew commit added")
 
 
-	// active_branch := update_branch(hashId)
 	path, active_branch, updated_commit := get_latest_commit(commit)
 	update_branch(hashId, path)
 	update_branch_log(updated_commit, active_branch)
 	return 
 }
 
-// this function just returns the path to the current branch so it can be used to update the logs
-// this will be further be referred to as "active_branch" anywhere outside this function
-func update_branch(hashId HashId, path string) string{
+/*
+	path is returned by get_latest_commit()
+	path = git_folder/refs/heads/{active branch}
+	crawl the path to the branch file now and write the commit id
+*/
+func update_branch(hashId HashId, path string) {
 
-	// crawl the path to the branch file now and write the commit id
-	// branch_path := "git_folder/"	+ path
 	branch, err := os.OpenFile(path, os.O_RDWR | os.O_TRUNC | os.O_CREATE, 0660)
 	handle_err(err)
 	defer branch.Close()
@@ -205,10 +198,13 @@ func update_branch(hashId HashId, path string) string{
 	fmt.Printf("[total bytes written] -> %d", n)
 	fmt.Println("[success] -> branch updated")
 
-  return path 
 }
 
-
+/*
+	commit, active_branch is returned by get_latest_commit()
+	active_branch = master (default)
+	commit is "updated commit" that has its parent
+*/
 func update_branch_log(commit Commit, active_branch string) {
 	path := "git_folder/logs/refs/heads/" + active_branch 
 
@@ -246,18 +242,16 @@ func update_branch_log(commit Commit, active_branch string) {
 	fmt.Println("[updated_log] -> success")
 }
 
-// we might need to fully refactor update_branch and include the logic
+
 /*
-	i.  Get latest commit from the active branch(upon initiaition, might just set latest commit to 00000)
+	i.  Get latest commit from the active branch
 			if:
-	ii. 	latest_commit == 0000000 then; parent commit.Parent === 000000000 
+	ii. 	latest_commit -eq 0000000 or "" then; parent commit.Parent === 000000000 
 			else:
 	iii.	commit.Parent = latest_commit
 			fi 
 
-	iv. Basic format logic	
 */
-
 func get_latest_commit(commit Commit) (string, string, Commit){
 	/* active branch is given to us by the HEAD.file */
 	head, err:= os.OpenFile("git_folder/HEAD.txt", os.O_RDONLY, 0660)
@@ -293,7 +287,6 @@ func get_latest_commit(commit Commit) (string, string, Commit){
 	}
 
 	/*logic for deciding parent*/
-
 	if latest_commit != "00000000000000000"{
 		hashId.Id = latest_commit 
 		commit.Parent = &hashId
@@ -303,43 +296,14 @@ func get_latest_commit(commit Commit) (string, string, Commit){
 	}
 
 	_, active_branch, _ = strings.Cut(path, "heads/")
-	// fmt.Println("\nTHE ACTIVE BRANCH")
-	// fmt.Println(active_branch)
 	
 	return path, active_branch, commit
 
-	// update_branch_log(commit, active_branch)
-
-}
-
-func handle_err(err error) {
-	if err != nil {
-		fmt.Println("[error] ->", err)
-		panic(err)
-		// return
-	}
-}
-
-
-func Checkout(name string) {
-	if len(name) < 2 {
-		fmt.Println("[error] -> branch name too short")
-		return
-	}
-
-	path := "git_folder/refs/heads/" + name
-	temp_commit := "rb_453124124835"
-
-	f, err := os.OpenFile(path, os.O_CREATE | os.O_RDWR, 0660)
-	handle_err(err)
-	defer f.Close()
 	
-	n, err := fmt.Fprintf(f, temp_commit)
-	handle_err(err)
-
-	fmt.Println("\n[branch] -> new branch made")
-	fmt.Printf("[new bytes] -> %d", n)
-
+	/* we can now return these values to 
+			update_branch(hashId, path)
+			update_branch_log(commit, active_branch)
+	*/ 
 }
 
 // this function is always called whenever a ```git --checkout``` or 
@@ -350,7 +314,7 @@ func Checkout(name string) {
 func update_header(name string){
 	path := "git_folder/HEAD.txt"
 	// new_branch := path + name
-	ref := "ref: refs/heads/" + name
+	ref := "ref:refs/heads/" + name
 	
 	f, err := os.OpenFile(path, os.O_CREATE | os.O_RDWR | os.O_TRUNC , 0660)
 	handle_err(err)
@@ -358,32 +322,52 @@ func update_header(name string){
 
 	n, err := fmt.Fprintf(f, ref)
 	handle_err(err)
-	//
+	
 	fmt.Println("\n[header] -> header pointer has been updated")
-	fmt.Printf("[new bytes] -> %d", n)
-
+	fmt.Printf("[status] --> %d written", n)
 }
 
-func (repo Commit) Checkout2(name string) {
+func  Checkout2(name string) {
 	if len(name) < 2 {
 		fmt.Println("[error] -> branch name too short")
 		return
 	}
 
 	path := "git_folder/refs/heads/" + name
-	temp_commit := uuid.New().String()
+
+	/*reading latest commit from active branch*/
+	head, err := os.OpenFile("git_folder/HEAD.txt", os.O_RDONLY, 0660)
+	handle_err(err)
+	defer head.Close()
 	
+	var curr_branch string
+	scanner := bufio.NewScanner(head)
+	for scanner.Scan() {
+		ref := scanner.Text()
+		_, curr_branch, _ = strings.Cut(ref, ":")
+	}
 	
-	// repo.Email = "just_edited to check if i can use it as a method"
-	f, err := os.OpenFile(path, os.O_CREATE | os.O_RDWR, 0660)
+	to_curr := "git_folder/" + curr_branch
+	f, err := os.OpenFile(to_curr, os.O_RDONLY, 0660)
 	handle_err(err)
 	defer f.Close()
 	
-	n, err := fmt.Fprintf(f, temp_commit)
+	branch_scanner := bufio.NewScanner(f)	
+	var latest_commit string
+
+	for branch_scanner.Scan() {
+		latest_commit = branch_scanner.Text()
+	}
+	
+	/*creating new branch*/
+	new_branch, err := os.OpenFile(path, os.O_CREATE | os.O_RDWR | os.O_TRUNC, 0660)
+	handle_err(err)
+	defer new_branch.Close()
+	
+	n, err := fmt.Fprintf(new_branch, latest_commit)
 	handle_err(err)
 
-	fmt.Println("[branch] -> new branch made")
-	fmt.Printf("[new bytes] -> %d", n)
+	fmt.Printf("[branch] -> new branch made, %d written", n)
 	
 	update_header(name)
 }

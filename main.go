@@ -38,10 +38,6 @@ func handle_err(err error) {
 }
 
 func exe_cli(cliArgs CliCmds) {
-	var repo 	git.Commit
-	// var repo2 git.Commit
-	// var err error
-
 	switch {
 	case cliArgs.init != "" :
 		_, err := git.Init(cliArgs.init)
@@ -53,12 +49,12 @@ func exe_cli(cliArgs CliCmds) {
 		git.CommitMsg(cliArgs.commit)
 
 	case cliArgs.checkout != "" :
-		git.Checkout(cliArgs.checkout)
+		git.Checkout2(cliArgs.checkout)
 
 	// still optional, if i should make it a  method
 	// so i can just grab the latest clone the latst commit
 	case cliArgs.checkout2 != "" :
-		repo.Checkout2(cliArgs.checkout2)
+		git.Checkout2(cliArgs.checkout2)
 
 	case cliArgs.switchto != "" :
 		git.SwitchBranch(cliArgs.switchto)
