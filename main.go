@@ -10,9 +10,9 @@ type CliCmds struct {
 	init string
 	commit string
 	checkout string
-	checkout2 string
 	switchto string
 	logs string
+	allb string
 }
 
 
@@ -23,9 +23,9 @@ func read_cli() CliCmds{
 	flag.StringVar(&cliArgs.init, "init", "", " init --> initialise new repo object < author :string >")
 	flag.StringVar(&cliArgs.commit, "commit", "", " commit --> create a new commit < commitMsg :string >")
 	flag.StringVar(&cliArgs.checkout, "checkout", "", " checkout --> create a new commit < branch :string >")
-	flag.StringVar(&cliArgs.checkout2, "checkout2", "", " checkout2 --> create a new commit < branch :string >")
 	flag.StringVar(&cliArgs.switchto, "switchto", "", " switchto --> create a new commit < branch :string >")
 	flag.StringVar(&cliArgs.logs, "logs", "", " logs --> displays all logs and commit history")
+	flag.StringVar(&cliArgs.allb, "allb", "", " all-branches --> shows all current branches")
 
 	flag.Parse()
 	return cliArgs
@@ -42,8 +42,6 @@ func exe_cli(cliArgs CliCmds) {
 	case cliArgs.init != "" :
 		_, err := git.Init(cliArgs.init)
 		handle_err(err)
-		// repo = tempRepo
-		// fmt.Println(repo)
 
 	case cliArgs.commit != "" :
 		git.CommitMsg(cliArgs.commit)
@@ -51,16 +49,16 @@ func exe_cli(cliArgs CliCmds) {
 	case cliArgs.checkout != "" :
 		git.Checkout(cliArgs.checkout)
 
-	// // still optional, if i should make it a  method
-	// // so i can just grab the latest clone the latst commit
-	// case cliArgs.checkout2 != "" :
-	// 	git.Checkout2(cliArgs.checkout2)
 
 	case cliArgs.switchto != "" :
 		git.SwitchTo(cliArgs.switchto)
 
 	case cliArgs.logs == "" :
 		git.Logs()
+
+
+	case cliArgs.allb == "" :
+		git.AllBranches()
 
 	default:
 		fmt.Println("[error] -> invalid arguments passed in")
