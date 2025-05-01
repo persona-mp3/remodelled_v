@@ -445,12 +445,12 @@ func Logs() {
 	scanner := bufio.NewScanner(file)
 
 	// i is the line counter	
-	i := 0
+	i := 1
 	for scanner.Scan() {
 		commit := scanner.Text()
 		fmt.Println(commit)
 		
-		if i % 5 == 0 {
+		if i % 6 == 0 {
 			fmt.Println("\n")
 		}
 		i++
