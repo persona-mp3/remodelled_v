@@ -11,8 +11,8 @@ type CliCmds struct {
 	commit string
 	checkout string
 	switchto string
-	logs string
-	allb string
+	logs bool
+	allb bool
 }
 
 
@@ -20,12 +20,12 @@ type CliCmds struct {
 func read_cli() CliCmds{
 	var cliArgs CliCmds
 	
-	flag.StringVar(&cliArgs.init, "init", "", " init --> initialise new repo object < author :string >")
+	flag.StringVar(&cliArgs.init, "init", "",  " init --> initialise new repo object < author :string >")
 	flag.StringVar(&cliArgs.commit, "commit", "", " commit --> create a new commit < commitMsg :string >")
 	flag.StringVar(&cliArgs.checkout, "checkout", "", " checkout --> create a new commit < branch :string >")
 	flag.StringVar(&cliArgs.switchto, "switchto", "", " switchto --> create a new commit < branch :string >")
-	flag.StringVar(&cliArgs.logs, "logs", "", " logs --> displays all logs and commit history")
-	flag.StringVar(&cliArgs.allb, "allb", "", " all-branches --> shows all current branches")
+	flag.BoolVar(&cliArgs.logs, "logs", false,  " logs --> displays all logs and commit history")
+	flag.BoolVar(&cliArgs.allb, "allb", false,  " all-branches --> shows all current branches")
 
 	flag.Parse()
 	return cliArgs
@@ -50,15 +50,15 @@ func exe_cli(cliArgs CliCmds) {
 		git.Checkout(cliArgs.checkout)
 
 
+	case cliArgs.allb :
+		git.AllBranches()
+
 	case cliArgs.switchto != "" :
 		git.SwitchTo(cliArgs.switchto)
 
-	case cliArgs.logs == "" :
+	case cliArgs.logs :
 		git.Logs()
 
-
-	case cliArgs.allb == "" :
-		git.AllBranches()
 
 	default:
 		fmt.Println("[error] -> invalid arguments passed in")

@@ -445,12 +445,12 @@ func Logs() {
 	scanner := bufio.NewScanner(file)
 
 	// i is the line counter	
-	i := 1
+	i := 0
 	for scanner.Scan() {
 		commit := scanner.Text()
 		fmt.Println(commit)
 		
-		if i % 6 == 0 {
+		if i % 5 == 0 {
 			fmt.Println("\n")
 		}
 		i++
@@ -462,11 +462,10 @@ func AllBranches() {
 	path := "git_folder/refs/heads"
 	
 	branches, err := os.ReadDir(path)
-	fmt.Println("reading directories")
 	handle_err(err)
 
 	for i, branch := range branches {
-		fmt.Printf("%s. %s", i, branch)
+		fmt.Printf("	%d. %s\n", i+1, branch)
 	}
 
 	f, err := os.OpenFile("git_folder/HEAD.txt", os.O_RDONLY, 0660)
@@ -480,11 +479,12 @@ func AllBranches() {
 		active_branch = scanner.Text()
 	}
 
-	_,b,_ := strings.Cut(active_branch, ":")
-	fmt.Println("You are currently at -->", b)
+	_,b,_ := strings.Cut(active_branch, "heads/")
+	fmt.Println("\ncurrently at -->", b)		
 
-	// defer os.Stdout.Sync()
+	defer os.Stdout.Sync()
 }
+
 // TODO: update to read from file instead
 func CommitHistory() {
 	table := table.New(os.Stdout)
