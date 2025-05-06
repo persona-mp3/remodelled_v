@@ -1,0 +1,15 @@
+i. need to get the user to have a configured username??
+- we could get it from the env variable through bash/go directly, if thats allowed
+
+ii. okay, then, we'd need to read it for every commit
+
+- so 
+- when a new init is done, an env is set for the user
+- we can use a random domain like @k2studios
+-- username@k2stuios, or username@suffix
+-- so go can directly use it. dont need it to be a file operation, thats uneccessary
+---> seems theres more alot to that, but a lil .sh could suffice.
+
+
+
+- handle erros, rn everything just panics

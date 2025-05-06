@@ -8,9 +8,10 @@ import (
 	"reflect"
 	"bufio"
 	"strings"
+	"log"
 	// "encoding/json"
 
-	"github.com/aquasecurity/table"
+	//"github.com/aquasecurity/table"
 	"github.com/google/uuid"
 )
 
@@ -50,9 +51,6 @@ type Format struct {
 type Commits []Commit
 type Branches []Branch
 
-var commits Commits
-var branches Branches
-var headerPtr Header
 
 
 func handle_err(err error) {
@@ -165,12 +163,12 @@ func CommitMsg(msg string) {
 	commit.CommitedAt = commitedAt
 	commit.Id = hashId
 	commit.Parent = &hashId
-	fmt.Println("\nnew commit added")
 
 
 	path, active_branch, updated_commit := get_latest_commit(commit)
 	defer update_branch(hashId, path)
 	defer update_branch_log(updated_commit, active_branch)
+	fmt.Println("\nnew commit added")
 	return 
 }
 
@@ -247,9 +245,13 @@ func update_branch_log(commit Commit, active_branch string) {
 
 */
 func get_latest_commit(commit Commit) (string, string, Commit){
+	
 	/* active branch is given to us by the HEAD.file */
 	head, err:= os.OpenFile("git_folder/HEAD.txt", os.O_RDONLY, 0660)
-	handle_err(err)
+	//handle_err(err)
+	if err != nil {
+		log.Fatal("Git repository not initialised\n run --> go run main.go -init 'name'\n")
+	}
 	defer head.Close()
 
 	/* read the head file and get path to the active branch*/
@@ -267,6 +269,7 @@ func get_latest_commit(commit Commit) (string, string, Commit){
 
 	/* opening the branch file and reading the latest commit id*/
 	branch, err := os.OpenFile(path,  os.O_CREATE|os.O_RDWR , 0660)	
+	
 	handle_err(err)
 	defer branch.Close()
 
@@ -330,17 +333,19 @@ func  Checkout(name string) {
 	if len(name) < 2 {
 		fmt.Println("[error] -> branch name too short")
 		return
-	}
+}
 
 	path := "git_folder/refs/heads/" + name
 
-	/*reading latest commit from active branch*/
+	/*getting the active branch path from the header file*/
 	head, err := os.OpenFile("git_folder/HEAD.txt", os.O_RDONLY, 0660)
 	handle_err(err)
+	}
 	defer head.Close()
-	
+		
 	var curr_branch string
 	scanner := bufio.NewScanner(head)
+
 	for scanner.Scan() {
 		ref := scanner.Text()
 		_, curr_branch, _ = strings.Cut(ref, ":")
@@ -351,6 +356,7 @@ func  Checkout(name string) {
 	handle_err(err)
 	defer f.Close()
 	
+	/*reading latest commit from curr_branch*/
 	branch_scanner := bufio.NewScanner(f)	
 	var latest_commit string
 
@@ -364,8 +370,9 @@ func  Checkout(name string) {
 	defer new_branch.Close()
 	
 	n, err := fmt.Fprintf(new_branch, latest_commit)
-	handle_err(err)
-
+	if err != nil {
+		log.Fatal("An error occured -->", err)
+	}
 	fmt.Printf("[success] -> new branch made\n  written %d bytes", n)
 	update_header(name)
 }
@@ -485,22 +492,3 @@ func AllBranches() {
 	defer os.Stdout.Sync()
 }
 
-// TODO: update to read from file instead
-func CommitHistory() {
-	table := table.New(os.Stdout)
-	table.SetHeaders("#id", "parent", "commitMsg","commitedAt")
-
-	fmt.Println("\n[RENDERING COMMIT HISTORY]")
-
-	for _, commit := range commits {
-			
-		parent := commit.Parent.Id
-		commitedAt := commit.CommitedAt.Format("Jan 2, 2006, 3:04 PM")
-		id := commit.Id.Id
-		msg := commit.CommitMsg
-
-		table.AddRow(id, parent, msg, commitedAt)
-	}
-
-	table.Render()
-}
