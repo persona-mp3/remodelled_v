@@ -340,7 +340,7 @@ func  Checkout(name string) {
 	/*getting the active branch path from the header file*/
 	head, err := os.OpenFile("git_folder/HEAD.txt", os.O_RDONLY, 0660)
 	handle_err(err)
-	}
+	
 	defer head.Close()
 		
 	var curr_branch string
