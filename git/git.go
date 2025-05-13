@@ -409,6 +409,7 @@ func find_branch(name string) (bool, string) {
 	fmt.Println("\n			try making a new branch with --checkout")
 	return is_found, branch
 }
+
 func record_all_logs(formatted Format) {
 	path := "git_folder/logs/HEAD.txt"
 	file, err := os.OpenFile(path, os.O_APPEND |  os.O_RDWR, 0660)
@@ -503,4 +504,4 @@ func CommitHistory() {
 	}
 
 	table.Render()
-}
+
