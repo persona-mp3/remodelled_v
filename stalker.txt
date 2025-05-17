@@ -1,0 +1,12 @@
+.gitignore || -rw-rw-rw- 
+README.md || -rw-rw-rw- 
+commits.txt || -rw-rw-rw- 
+docs\notes.txt || -rw-rw-rw- 
+docs\progress.txt || -rw-rw-rw- 
+git\git.go || -rw-rw-rw- 
+git\tools.go || -rw-rw-rw- 
+git.go || -rw-rw-rw- 
+go.mod || -rw-rw-rw- 
+go.sum || -rw-rw-rw- 
+main.go || -rw-rw-rw- 
+stalker.txt || -rw-rw-rw- 

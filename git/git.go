@@ -486,6 +486,7 @@ func AllBranches() {
 	defer os.Stdout.Sync()
 }
 
+
 // TODO: update to read from file instead
 func CommitHistory() {
 	table := table.New(os.Stdout)
@@ -504,4 +505,17 @@ func CommitHistory() {
 	}
 
 	table.Render()
+}
+
+
+/*IMPORTED FUNCTIONS FROM TOOLS.GO*/
+func StagingArea() {
+		fmt.Println("[adding to staging area]")
+		// UpdateIndex()
+		WriteIndex()
+	}
+
+
+
+
 

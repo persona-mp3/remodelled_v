@@ -13,6 +13,7 @@ type CliCmds struct {
 	switchto string
 	logs bool
 	allb bool
+	add bool
 }
 
 
@@ -26,6 +27,7 @@ func read_cli() CliCmds{
 	flag.StringVar(&cliArgs.switchto, "switchto", "", " switchto --> create a new commit < branch :string >")
 	flag.BoolVar(&cliArgs.logs, "logs", false,  " logs --> displays all logs and commit history")
 	flag.BoolVar(&cliArgs.allb, "allb", false,  " all-branches --> shows all current branches")
+	flag.BoolVar(&cliArgs.add, "add", false,  "add -> adds all commit to staging area")
 
 	flag.Parse()
 	return cliArgs
@@ -59,6 +61,8 @@ func exe_cli(cliArgs CliCmds) {
 	case cliArgs.logs :
 		git.Logs()
 
+	case cliArgs.add:
+		git.RecursiveCheck()
 
 	default:
 		fmt.Println("[error] -> invalid arguments passed in")

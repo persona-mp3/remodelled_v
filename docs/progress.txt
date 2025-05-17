@@ -8,5 +8,8 @@ iv. Compression Algorithm
 - Python scripting
 - Bash Scripting
 
+v. Now that i've kind of dablled with basic compression algorithm, for now, i think i'd want to write it in python, but the only problems i can see right now are executing the file via GOLang, compatibility issues, and possuibly how other OS might want to do that, also folder structure, but now, i think i need to make a staging area 
+
+
 Other:
 - React/App for UI

@@ -187,3 +187,50 @@ ii. While there are other commits, we need to get this commit by:
               * if latest_commit === "" {that means its the first commit, so commit.Parent === 0000000 // read this into the HashId struct}
               * else:
               * commit.Parent = latest_commit // REM: after reading it to a struct
+
+
+
+
+NEW PROBLEM
+Making a staging area, while I puposely neglected this feature in the begining, I kind of see very important it is in gits architecture. I just finished playing with file compression in Pyton and for now, its kind f straigt foward using LZMA but just for individual files not a whole folder.
+
+so now that i want to develop the staging area, this is how i think it works
+1. it has something like a temporary live queue that knows what isnt added for tracking and what is added for tracking, thats why anytime you run:
+      ```git status```
+
+You get to see fies not tracked, and files tracked.
+
+2. When you do git add, you literally add to that queue or list
+3. And then when commited, the compression takes place based on what was added, and what was included in the gitignore file
+
+
+So this is how i think i should do it ->
+Since git always knows whats its tracking and who is not been tracked, we could have a file that acts as a checklist with all names of folders and files <broken down later>
+And then when we say ```go run main.go add .```  -> we just add all current file names to the list
+And then we we say ```go run main.go commit ``` -> we then compress whats on that list, 
+
+**But thats a pretty long process if you think about it, reading from file and all that,
+
+UPDATE:
+Messed around inside git folders and I was able to find the index file. It follows the same principles proposed earlier, the only difference is that it's contents are compressed by gits cusom binary tree
+
+Go into ./.git/index and run `cat index`, you'll see some weird shit too, thats the binary format
+And then going back into your working directory ->
+    ``` git ls-files --stage```
+    And you'll basically see the stalker
+    10063 hahsCode index filename.txt
+    10063 hahsCode index filename2.txt
+    10063 hahsCode index filename3.txt
+    10063 hahsCode index filename4.txt
+
+While surpisingly, i was able to get the docs, it was so verbosed but i got the general idea, and it validates with the previous concept I had about it, but another foresight I have been thinling abour is building the TREE, for over a couple months, I imagined it to be the hardest, but thats for later concerns.
+
+    10064 -> File Permisson
+    index -> used in merges
+
+* go run main.go add . -> 
+    - Read all file name in current directory recusrively
+    - Write them to a file
+    - defer f.Close()
+
+
