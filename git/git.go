@@ -141,7 +141,6 @@ func mk_log_folders() {
 		err := os.Mkdir(path, 0777)
 		handle_err(err)	
 	}
-
 }
 
 // for now, the commit is basically the same as the repo created
@@ -166,7 +165,6 @@ func CommitMsg(msg string) {
 	commit.Id = hashId
 	commit.Parent = &hashId
 	fmt.Println("\nnew commit added")
-
 
 	path, active_branch, updated_commit := get_latest_commit(commit)
 	defer update_branch(hashId, path)
@@ -432,7 +430,6 @@ func record_all_logs(formatted Format) {
 		n_total += n
 
 	}
-
 }
 
 func Logs() {
@@ -457,7 +454,6 @@ func Logs() {
 		i++
 	}
 }
-
 
 func AllBranches() {
 	path := "git_folder/refs/heads"
@@ -489,7 +485,7 @@ func AllBranches() {
 // TODO: update to read from file instead
 func CommitHistory() {
 	table := table.New(os.Stdout)
-	table.SetHeaders("#id", "parent", "commitMsg","commitedAt")
+	table.SetHeaders("#id", "parent", "commitMsg","committedAt")
 
 	fmt.Println("\n[RENDERING COMMIT HISTORY]")
 
@@ -504,4 +500,8 @@ func CommitHistory() {
 	}
 
 	table.Render()
+}
 
+func StagingArea(files string) {
+	GitAdd(files)
+}
