@@ -187,3 +187,83 @@ ii. While there are other commits, we need to get this commit by:
               * if latest_commit === "" {that means its the first commit, so commit.Parent === 0000000 // read this into the HashId struct}
               * else:
               * commit.Parent = latest_commit // REM: after reading it to a struct
+
+
+
+
+
+
+
+
+
+
+FILE PERMISSIONS DOCS
+File permssions vary accross different OS'es for example on Linux and MacOS systems, you'd probably see giberrish of this nature in Linux systems:
+-> &{
+    name:main.go 
+    size:1693 
+    *mode:511 -> OCTAL NOTATION is how Go represents file PERMISSIONS 
+    modTime:{wall:594914662 ext:63883463752 loc:0x63f400} 
+    sys:{
+      Dev:2080 Ino:330977 
+      Nlink:1 Mode:33279 
+      Uid:1001 
+      Gid:984 
+      X__pad0:0 
+      Rdev:0 
+      Size:1693 
+      Blksize:4096
+      Blocks:8 
+      Atim:{
+        Sec:1747866953 
+        Nsec:604914668
+        } 
+      Mtim:{Sec:1747866952 Nsec:594914662} 
+      Ctim:{
+        Sec:1747866952 
+        Nsec:594914662
+        } 
+      X__unused:[0 0 0]
+      }
+      }  
+
+File permssions like 
+511, 420 are the decimal format which stand for read & write for owner, while groups and others can read
+420 : all can read and write and EXECUTE
+
+The Octal representation of that which go uses is 0644, 0777, Windows :-> rw-r--r--, rwxrwxrwx
+
+If you're on a linux based system , running -> ```ls -l``` you should see something like this
+
+        -rwxrwxrwx 1 archive users 4291 May 21 23:14 README.md
+        -rwxrwxrwx 1 archive users 4258 May 21 23:14 commits.txt
+        drwxrwxrwx 2 archive users 4096 May 22 12:40 docs
+        drwxrwxrwx 2 archive users 4096 May 22 12:30 git
+        drwxr-xr-x 5 archive users 4096 May 22 12:25 git_folder
+        -rwxrwxrwx 1 archive users  372 May 21 23:14 go.mod
+        -rwxrwxrwx 1 archive users 1110 May 21 23:14 go.sum
+        -rw-r--r-- 1 archive users  228 May 22 02:07 jj.txt
+        -rwxrwxrwx 1 archive users 1693 May 21 23:35 main.go
+
+
+r -> read
+w -> write
+x -> execute 
+This is the symbolic mode representation wheere the first group represents the owner, second is group owner, and then others, so ->
+main.go is :
+OWNER: can read, write,execute -> rwr
+GROUP OWNER: can read, write execture -> rwr
+OTHER:can read, write,execute -> rwr
+
+But for git_folder ->
+owner has rwr, but the gorup can only read and execute not write, while others can only execute
+
+Theres another way file permissions are represented, the octal system where:
+r -> 4 
+w -> 2 
+r -> 1 
+
+so octal notation for main.go would be -> 777
+git_folder -> 721
+jj.txt -> 644
+README.md-> 777

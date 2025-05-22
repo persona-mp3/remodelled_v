@@ -16,6 +16,7 @@ func logErr(err error, message string) {
 }
 
 type FilePath struct {
+	Perm string
 	Name string
 	HasParent bool
 	ParentDir string
@@ -41,8 +42,9 @@ func GitAdd(files string) {
 }
 
 
-func factory(name string, hasParent bool, parent string) {
+func factory(name string, hasParent bool, parent string, perm string) {
 	file := FilePath {
+		Perm: perm,
 		Name: name,
 		HasParent: hasParent,
 		ParentDir: parent,
@@ -57,7 +59,7 @@ func factory(name string, hasParent bool, parent string) {
 
 	defer i.Close()
 	// info := fmt.Sprintf("%s\t\t\t\t%t\t\t\t%s\n", file.Name, file.HasParent, file.ParentDir)
-	info := fmt.Sprintf("%-20s %-6t %-30s\n", file.Name, file.HasParent, file.ParentDir)
+	info := fmt.Sprintf("%-20s %-20s %-20t %-30s\n", file.Perm, file.Name, file.HasParent, file.ParentDir)
 	n, err := fmt.Fprintf(i, info)
 	logErr(err, "Error occured while writing to index file")
 	fmt.Println("writing bytes ->", n)
@@ -72,14 +74,21 @@ func walkFn(path string, d os.DirEntry, err error ) error{
 		return fs.SkipDir 
 	}
 	
-	if !d.IsDir() {
-		_, err := d.Info()
-		logErr(err, "Error in getting file info")
+	// perm, err := d.Info()
+	// logErr(err, "Error occured getting file info")
 
+	if !d.IsDir() {
+		// _, err := d.Info()
+		// logErr(err, "Error in getting file info")
+
+		perm, err := d.Info()
+		logErr(err, "Error occured getting file info")
+		
 		if path != d.Name() {
-			factory(d.Name(), true, path)
+			factory(d.Name(), true, path, fmt.Sprint(perm.Mode()))
 		}else {
-			factory(d.Name(), false, "root")
+			factory(d.Name(), false, "root", fmt.Sprint(perm.Mode()))
+			logErr(err, "Error occured getting file info")
 		}
 		// fmt.Printf("f -> %s + %s\n", d.Name(), path)
 	}
